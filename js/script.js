@@ -56,22 +56,24 @@ $(document).ready(function() {
     // 메뉴 설명
     var menu = $('#menu ul > li');
 
-    menu.on('mouseenter', function(event) {
+    const menuShow = (event) => {
         var target = event.currentTarget;
-
+    
         $(target).find('.ko_title').stop().animate({'top' : '50px'}, 400);
         $(target).find('.en_title').stop().animate({'top' : '95px'}, 400);
         $(target).find('.desc').stop().animate({'top' : '125px', 'opacity' : '1'}, 500);
         $(target).find('.icon').stop().animate({'bottom' : '30px', 'opacity' : '1'}, 300);
-    });
-    menu.on('mouseleave', function(event) {
+    }
+ 
+    const menuHide = (event) => {
         var target = event.currentTarget;
-
+    
         $(target).find('.ko_title').stop().animate({'top' : '100px'});
         $(target).find('.en_title').stop().animate({'top' : '145px'});
         $(target).find('.desc').stop().animate({'top' : '200px', 'opacity' : '0'});
         $(target).find('.icon').stop().animate({'bottom' : '100px', 'opacity' : '0'});
-    });
+    }
+    
 
 
     var menuTab = $('#menu-tab ul > li');
@@ -96,6 +98,71 @@ $(document).ready(function() {
         }
         });
     });
+    const sandwiches = [];
+
+    const getSandwich = () => {
+        return fetch('http://localhost:3000/subway/sandwich', {
+            'method' : 'GET',
+            'headers' : {
+                'Content-Type' : 'application/json'
+            }
+        }).then(res => res)
+        .then(res => res.json())
+    }
+    const templateSandwichLabel = (label) => {
+        if (label) {
+            return `<div class="label">${label}</div>`;
+        } else {
+            return``;
+        }
+    }
+    const templateSandwichkcal = (kcal) => {
+        if (kcal) {
+            return `<span class="kcal">${kcal}</span>`;
+        } else {
+            return``;
+        }
+    }
+
+    const templateSandwich = (sandwich) => {
+        const {type, label, img, ko_title, en_title, kcal, summary, view_id} = sandwich;
+
+        return `
+        <li class="${type}">
+        <a href="#">
+            ${templateSandwichLabel(label)}
+            <div class="img">
+                <img src="${img}" alt="${ko_title}">
+            </div>
+            <strong class="ko_title">${ko_title}</strong>
+            <span class="en_title">${en_title}</span>
+            ${templateSandwichkcal(kcal)}
+            <p class="desc">${summary}</p>
+            <div class="icon" data-id="${view_id}"></div>
+        </a>
+    </li>
+        `
+    }
+
+    const listSandWich = async () => {
+        const sandwiches = await getSandwich();
+        
+        // sandwiches.then((data) => {
+        //     console.log(data);
+        // }) 
+
+        const menu = document.getElementById('menu');
+        const menuWrap = menu.querySelector('ul');
+        console.log(menu, menuWrap);
+
+        for(const sandwich of sandwiches) {
+            const node = $(templateSandwich(sandwich))[0];
+            $(node).on('mouseenter', menuShow);
+            $(node).on('mouseleave', menuHide);
+            menuWrap.append(node);
+        }
+    }
+    listSandWich();
 
 });
 
